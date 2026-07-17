@@ -18,6 +18,9 @@ export interface CommunitySummary {
   description: string;
   heroEmoji: string | null;
   imageUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  poiCount: number;
   distanceMeters?: number;
 }
 

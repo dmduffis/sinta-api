@@ -1,6 +1,11 @@
 import type { Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma";
-import { getPoiWithGeometry, mapPoi } from "../lib/geo";
+import {
+  getPoiWithGeometry,
+  listCommunities,
+  mapCommunitySummary,
+  mapPoi,
+} from "../lib/geo";
 
 export async function searchHandler(
   req: Request,
@@ -14,18 +19,10 @@ export async function searchHandler(
       return;
     }
 
-    const [communities, pois, dishes] = await Promise.all([
-      prisma.community.findMany({
-        where: {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { neighborhood: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-          ],
-        },
-        take: 20,
-        orderBy: { name: "asc" },
-      }),
+    const needle = q.toLowerCase();
+
+    const [allCommunities, pois, dishes] = await Promise.all([
+      listCommunities(),
       prisma.poi.findMany({
         where: {
           OR: [
@@ -50,6 +47,17 @@ export async function searchHandler(
       }),
     ]);
 
+    const communities = allCommunities
+      .filter(
+        (c) =>
+          c.name.toLowerCase().includes(needle) ||
+          c.neighborhood.toLowerCase().includes(needle) ||
+          c.description.toLowerCase().includes(needle) ||
+          c.city.toLowerCase().includes(needle),
+      )
+      .slice(0, 20)
+      .map(mapCommunitySummary);
+
     const poiResults = await Promise.all(
       pois.map(async (p) => {
         const row = await getPoiWithGeometry(p.id);
@@ -69,15 +77,7 @@ export async function searchHandler(
 
     res.json({
       query: q,
-      communities: communities.map((c) => ({
-        id: c.id,
-        name: c.name,
-        neighborhood: c.neighborhood,
-        city: c.city,
-        description: c.description,
-        heroEmoji: c.heroEmoji,
-        imageUrl: c.imageUrl,
-      })),
+      communities,
       pois: poiResults,
       dishes: dishes.map((d) => ({
         id: d.id,

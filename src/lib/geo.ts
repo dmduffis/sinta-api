@@ -10,7 +10,10 @@ type CommunityRow = {
   heroEmoji: string | null;
   imageUrl: string | null;
   boundary_geojson: string | null;
-  distance_meters?: number | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
+  poi_count: number | string | null;
+  distance_meters?: number | string | null;
 };
 
 type PoiRow = {
@@ -23,6 +26,20 @@ type PoiRow = {
   location_geojson: string | null;
 };
 
+const COMMUNITY_SELECT = `
+  c.id,
+  c.name,
+  c.neighborhood,
+  c.city,
+  c.description,
+  c."heroEmoji",
+  c."imageUrl",
+  ST_AsGeoJSON(c.boundary)::text AS boundary_geojson,
+  ST_Y(ST_Centroid(c.boundary)) AS latitude,
+  ST_X(ST_Centroid(c.boundary)) AS longitude,
+  (SELECT COUNT(*)::int FROM "Poi" p WHERE p."communityId" = c.id) AS poi_count
+`;
+
 export function parseGeoJson<T>(raw: string | null): T | null {
   if (!raw) return null;
   try {
@@ -30,6 +47,12 @@ export function parseGeoJson<T>(raw: string | null): T | null {
   } catch {
     return null;
   }
+}
+
+function toNumber(value: number | string | null | undefined): number | null {
+  if (value == null) return null;
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 export async function findCommunitiesNear(
@@ -40,14 +63,7 @@ export async function findCommunitiesNear(
   return prisma.$queryRawUnsafe<CommunityRow[]>(
     `
     SELECT
-      c.id,
-      c.name,
-      c.neighborhood,
-      c.city,
-      c.description,
-      c."heroEmoji",
-      c."imageUrl",
-      ST_AsGeoJSON(c.boundary)::text AS boundary_geojson,
+      ${COMMUNITY_SELECT},
       ST_Distance(
         c.boundary::geography,
         ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
@@ -71,14 +87,7 @@ export async function listCommunities(): Promise<CommunityRow[]> {
   return prisma.$queryRawUnsafe<CommunityRow[]>(
     `
     SELECT
-      c.id,
-      c.name,
-      c.neighborhood,
-      c.city,
-      c.description,
-      c."heroEmoji",
-      c."imageUrl",
-      ST_AsGeoJSON(c.boundary)::text AS boundary_geojson
+      ${COMMUNITY_SELECT}
     FROM "Community" c
     ORDER BY c.name ASC
     `,
@@ -91,14 +100,7 @@ export async function getCommunityWithGeometry(
   const rows = await prisma.$queryRawUnsafe<CommunityRow[]>(
     `
     SELECT
-      c.id,
-      c.name,
-      c.neighborhood,
-      c.city,
-      c.description,
-      c."heroEmoji",
-      c."imageUrl",
-      ST_AsGeoJSON(c.boundary)::text AS boundary_geojson
+      ${COMMUNITY_SELECT}
     FROM "Community" c
     WHERE c.id = $1
     LIMIT 1
@@ -158,8 +160,11 @@ export function mapCommunitySummary(row: CommunityRow) {
     description: row.description,
     heroEmoji: row.heroEmoji,
     imageUrl: row.imageUrl,
+    latitude: toNumber(row.latitude),
+    longitude: toNumber(row.longitude),
+    poiCount: toNumber(row.poi_count) ?? 0,
     ...(row.distance_meters != null
-      ? { distanceMeters: Number(row.distance_meters) }
+      ? { distanceMeters: toNumber(row.distance_meters) ?? undefined }
       : {}),
   };
 }
