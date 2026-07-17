@@ -16,7 +16,7 @@ export type YelpSyncResult = {
 };
 
 /** Preferred Yelp search terms for enclaves where generic "restaurants" is too noisy. */
-const COMMUNITY_SEARCH_TERMS: Record<string, string> = {
+const COMMUNITY_SEARCH_TERMS: Record<string, string | string[]> = {
   "little-colombia": "colombian",
   "little-ecuador": "ecuadorian",
   "little-mexico-sunset-park": "mexican",
@@ -25,23 +25,28 @@ const COMMUNITY_SEARCH_TERMS: Record<string, string> = {
   "little-pakistan": "pakistani",
   "little-bangladesh": "bangladeshi",
   "koreatown-manhattan": "korean",
-  "koreatown-queens": "korean",
+  "koreatown-queens": ["korean", "korean bbq"],
   "chinatown-flushing": "chinese",
   "chinatown-manhattan": "chinese",
   "chinatown-sunset-park": "chinese",
-  "little-senegal": "senegalese",
+  "little-senegal": ["senegalese", "west african", "african"],
+  "little-africa-si": ["liberian", "west african", "african"],
+  "little-africa-bronx": ["ghanaian", "west african", "african"],
   "little-dominican-republic": "dominican",
   "little-haiti": "haitian",
   "little-poland": "polish",
   "little-ukraine": "ukrainian",
-  "little-odessa": "russian",
+  "little-odessa": ["russian", "ukrainian"],
   "little-manila": "filipino",
-  "little-egypt": "egyptian",
+  "little-egypt": ["egyptian", "middle eastern"],
   "little-yemen": "yemeni",
-  "little-palestine": "palestinian",
-  "little-guyana-queens": "guyanese",
-  "little-caribbean": "caribbean",
-  "little-bhod-tibet": "tibetan",
+  "little-palestine": ["palestinian", "middle eastern"],
+  "little-guyana-queens": ["guyanese", "roti"],
+  "little-guyana-bronx": ["guyanese", "roti"],
+  "guyana-gateway": ["guyanese", "roti"],
+  "little-caribbean": ["caribbean", "jamaican", "jerk"],
+  "little-bhod-tibet": ["tibetan", "nepali", "himalayan", "momo"],
+  "little-albania": "albanian",
 };
 
 /** Ethnicity ids that "belong" to an enclave — used to reclaim misplaced Yelp POIs. */
@@ -58,19 +63,24 @@ const COMMUNITY_ETHNICITIES: Record<string, string[]> = {
   "chinatown-flushing": ["chinese", "taiwanese"],
   "chinatown-manhattan": ["chinese"],
   "chinatown-sunset-park": ["chinese"],
-  "little-senegal": ["senegalese"],
+  "little-senegal": ["senegalese", "west_african", "ghanaian"],
+  "little-africa-si": ["liberian", "west_african", "ghanaian", "senegalese"],
+  "little-africa-bronx": ["ghanaian", "west_african", "nigerian", "senegalese"],
   "little-dominican-republic": ["dominican"],
   "little-haiti": ["haitian"],
   "little-poland": ["polish"],
   "little-ukraine": ["ukrainian"],
   "little-odessa": ["russian", "ukrainian"],
   "little-manila": ["filipino"],
-  "little-egypt": ["egyptian"],
+  "little-egypt": ["egyptian", "middle_eastern"],
   "little-yemen": ["yemeni"],
-  "little-palestine": ["palestinian"],
+  "little-palestine": ["palestinian", "middle_eastern", "lebanese"],
   "little-guyana-queens": ["guyanese"],
-  "little-caribbean": ["jamaican", "caribbean", "haitian"],
+  "little-guyana-bronx": ["guyanese"],
+  "guyana-gateway": ["guyanese"],
+  "little-caribbean": ["jamaican", "caribbean", "haitian", "guyanese"],
   "little-bhod-tibet": ["nepali"],
+  "little-albania": ["albanian"],
 };
 
 async function getCommunityCentroid(
@@ -205,16 +215,29 @@ export async function syncYelpForCommunity(
     throw new Error(`Community not found or missing boundary: ${communityId}`);
   }
 
-  const term =
+  const termOpt =
     opts?.term ?? COMMUNITY_SEARCH_TERMS[communityId] ?? "restaurants";
+  const terms = Array.isArray(termOpt) ? termOpt : [termOpt];
 
-  const businesses = await searchYelpBusinesses({
-    latitude: centroid.lat,
-    longitude: centroid.lng,
-    radiusMeters: opts?.radiusMeters ?? 1500,
-    limit: opts?.limit ?? 40,
-    term,
-  });
+  const seen = new Set<string>();
+  const businesses: YelpBusiness[] = [];
+  for (const term of terms) {
+    const batch = await searchYelpBusinesses({
+      latitude: centroid.lat,
+      longitude: centroid.lng,
+      radiusMeters: opts?.radiusMeters ?? 1600,
+      limit: opts?.limit ?? 40,
+      term,
+    });
+    for (const b of batch) {
+      if (seen.has(b.id)) continue;
+      seen.add(b.id);
+      businesses.push(b);
+    }
+    if (terms.length > 1) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
 
   let upserted = 0;
   let skipped = 0;

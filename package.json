@@ -12,7 +12,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma migrate deploy && prisma db seed",
-    "yelp:sync": "tsx scripts/sync-yelp.ts"
+    "yelp:sync": "tsx scripts/sync-yelp.ts",
+    "yelp:resync-all": "tsx scripts/resync-yelp-all.ts"
   },
   "engines": {
     "node": ">=20.19.0"
