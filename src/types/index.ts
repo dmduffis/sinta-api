@@ -26,7 +26,8 @@ export interface CommunitySummary {
 
 export interface PoiSummary {
   id: string;
-  communityId: string;
+  /** Null when the restaurant is not tied to an enclave. */
+  communityId: string | null;
   name: string;
   category: string;
   address: string | null;

@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import {
   syncYelpForAllCommunities,
   syncYelpForCommunity,
+  syncYelpForMetro,
 } from "../lib/yelpSync";
 
 /**
@@ -77,6 +78,33 @@ export async function syncAllYelpHandler(
       communities: results.length,
       results,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function syncMetroYelpHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!assertSyncAuthorized(req, res)) return;
+
+    const metroId = req.params.metroId?.trim().toLowerCase();
+    if (!metroId) {
+      res.status(400).json({ error: "metroId is required" });
+      return;
+    }
+
+    const limit =
+      typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+
+    const result = await syncYelpForMetro(metroId, {
+      limitPerSearch: Number.isFinite(limit) ? limit : undefined,
+    });
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

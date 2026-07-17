@@ -18,7 +18,7 @@ type CommunityRow = {
 
 type PoiRow = {
   id: string;
-  communityId: string;
+  communityId: string | null;
   name: string;
   category: string;
   address: string | null;
@@ -30,6 +30,7 @@ type PoiRow = {
   imageUrl: string | null;
   yelpUrl: string | null;
   ethnicities: string[] | null;
+  distance_meters?: number | string | null;
 };
 
 const COMMUNITY_SELECT = `
@@ -169,6 +170,74 @@ export async function getPoiWithGeometry(id: string): Promise<PoiRow | null> {
   return rows[0] ?? null;
 }
 
+export type ListPoisNearOpts = {
+  lat: number;
+  lng: number;
+  radiusMeters: number;
+  /** Match if POI ethnicities overlap any of these slugs. */
+  ethnicities?: string[];
+  /** When true, only POIs with no community. */
+  unassignedOnly?: boolean;
+  /** When set, only POIs for this community. */
+  communityId?: string;
+  limit?: number;
+};
+
+/** Ethnic restaurants near a point (enclave-bound and/or standalone). */
+export async function listPoisNear(opts: ListPoisNearOpts): Promise<PoiRow[]> {
+  const limit = Math.min(Math.max(opts.limit ?? 80, 1), 200);
+  const ethnicities = opts.ethnicities?.filter(Boolean) ?? [];
+  const params: unknown[] = [opts.lng, opts.lat, opts.radiusMeters, limit];
+  const filters: string[] = [
+    `p.location IS NOT NULL`,
+    `ST_DWithin(
+      p.location::geography,
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+      $3
+    )`,
+  ];
+
+  if (opts.unassignedOnly) {
+    filters.push(`p."communityId" IS NULL`);
+  }
+  if (opts.communityId) {
+    params.push(opts.communityId);
+    filters.push(`p."communityId" = $${params.length}`);
+  }
+  if (ethnicities.length > 0) {
+    params.push(ethnicities);
+    filters.push(`p.ethnicities && $${params.length}::text[]`);
+  }
+
+  return prisma.$queryRawUnsafe<PoiRow[]>(
+    `
+    SELECT
+      p.id,
+      p."communityId",
+      p.name,
+      p.category,
+      p.address,
+      p.hours,
+      ST_AsGeoJSON(p.location)::text AS location_geojson,
+      p."yelpId",
+      p.rating,
+      p."priceLevel",
+      p."imageUrl",
+      p."yelpUrl",
+      p.ethnicities,
+      ST_Distance(
+        p.location::geography,
+        ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+      ) AS distance_meters
+    FROM "Poi" p
+    WHERE ${filters.join("\n      AND ")}
+    ORDER BY distance_meters ASC
+    LIMIT $4
+    `,
+    ...params,
+  );
+}
+
 export function mapCommunitySummary(row: CommunityRow) {
   return {
     id: row.id,
@@ -215,5 +284,8 @@ export function mapPoi(row: PoiRow) {
     ethnicities: Array.isArray(row.ethnicities)
       ? row.ethnicities.slice(0, 2)
       : [],
+    ...(row.distance_meters != null
+      ? { distanceMeters: toNumber(row.distance_meters) ?? undefined }
+      : {}),
   };
 }

@@ -17,7 +17,7 @@ async function resolveFavoriteTarget(
   ok: boolean;
   title?: string;
   subtitle?: string;
-  communityId?: string;
+  communityId?: string | null;
   emoji?: string;
   restaurantId?: string;
 }> {
@@ -44,7 +44,9 @@ async function resolveFavoriteTarget(
     return {
       ok: true,
       title: poi.name,
-      subtitle: `${poi.community.name} · Restaurant`,
+      subtitle: poi.community
+        ? `${poi.community.name} · Restaurant`
+        : "Restaurant",
       communityId: poi.communityId,
       restaurantId: poi.id,
       emoji: "🍽️",

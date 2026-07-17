@@ -49,8 +49,9 @@ model Community {
 
 model Poi {
   id          String                                @id @default(cuid())
-  communityId String
-  community   Community                             @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  /// Null when discovered via metro/cuisine sync outside an enclave.
+  communityId String?
+  community   Community?                            @relation(fields: [communityId], references: [id], onDelete: Cascade)
   name        String
   category    String
   /// PostGIS point (WGS84). Queried via raw SQL / ST_* helpers.

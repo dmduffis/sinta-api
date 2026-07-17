@@ -59,7 +59,15 @@ const CATEGORY_ETHNICITY_RULES: { match: RegExp; id: string }[] = [
   { match: /\blebanese\b/i, id: "lebanese" },
   { match: /\bsyrian\b/i, id: "syrian" },
   { match: /\bpalestinian\b|falafel|knafeh|shawarma/i, id: "palestinian" },
-  { match: /\byemeni\b|saltah|fahsa\b/i, id: "yemeni" },
+  {
+    match:
+      /\byemeni\b|\byemen\b|\baden\b|tihama|\bazal\b|sheeba|\bsheba\b|saltah|fahsa|fahsah|mandi\b|haneeth|bint.?al.?sahn/i,
+    id: "yemeni",
+  },
+  {
+    match: /\bchaldean\b|\biraqi\b|\biraq\b|baghdad|mosul|basra/i,
+    id: "iraqi",
+  },
   { match: /\bmoroccan\b/i, id: "moroccan" },
   { match: /\bturkish\b/i, id: "turkish" },
   { match: /\biranian\b|persian\b/i, id: "iranian" },

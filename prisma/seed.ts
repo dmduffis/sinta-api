@@ -434,6 +434,128 @@ const COMMUNITIES: {
     lng: -73.705,
     delta: 0.028,
   },
+  // —— Greater Detroit ——
+  {
+    id: "little-arabia-dearborn",
+    name: "Little Arabia in Dearborn",
+    neighborhood: "Warren Avenue, Dearborn",
+    city: "Metro Detroit",
+    description:
+      "America's Arab capital — Warren Avenue bakeries, shawarma spots, and the densest Middle Eastern food corridor outside the Middle East.",
+    heroEmoji: "🇱🇧",
+    lat: 42.3223,
+    lng: -83.1763,
+    delta: 0.025,
+  },
+  {
+    id: "little-baghdad-sterling-heights",
+    name: "Little Baghdad in Sterling Heights",
+    neighborhood: "15 Mile & Dequindre, Sterling Heights",
+    city: "Metro Detroit",
+    description:
+      "Metro Detroit's Chaldean and Iraqi hub — restaurants, markets, and bilingual storefronts around 15 Mile and Dequindre.",
+    heroEmoji: "🇮🇶",
+    lat: 42.5806,
+    lng: -83.0675,
+    delta: 0.028,
+  },
+  {
+    id: "banglatown-hamtramck",
+    name: "Banglatown in Hamtramck",
+    neighborhood: "Conant Street, Hamtramck",
+    city: "Metro Detroit",
+    description:
+      "Hamtramck's Banglatown — Bangladeshi groceries, sweets shops, and South Asian restaurants along Conant Street.",
+    heroEmoji: "🇧🇩",
+    lat: 42.3978,
+    lng: -83.057,
+    delta: 0.02,
+  },
+  {
+    id: "mexicantown-detroit",
+    name: "Mexicantown in Detroit",
+    neighborhood: "Southwest Detroit",
+    city: "Metro Detroit",
+    description:
+      "Detroit's Mexicantown — tacos, bakeries, and murals along Vernor and Bagley in Southwest Detroit.",
+    heroEmoji: "🇲🇽",
+    lat: 42.3185,
+    lng: -83.0865,
+    delta: 0.02,
+  },
+  // —— Greater Los Angeles / Orange County ——
+  {
+    id: "koreatown-la",
+    name: "Koreatown in Los Angeles",
+    neighborhood: "Wilshire / Western, Los Angeles",
+    city: "Los Angeles",
+    description:
+      "The largest Koreatown outside Seoul — barbecue halls, noraebang nights, and late-night soondubu around Wilshire and Western.",
+    heroEmoji: "🇰🇷",
+    lat: 34.061,
+    lng: -118.302,
+    delta: 0.02,
+  },
+  {
+    id: "thai-town-la",
+    name: "Thai Town in Los Angeles",
+    neighborhood: "East Hollywood, Los Angeles",
+    city: "Los Angeles",
+    description:
+      "America's only official Thai Town — pad thai, boat noodles, and markets along Hollywood Boulevard between Normandie and Western.",
+    heroEmoji: "🇹🇭",
+    lat: 34.1015,
+    lng: -118.305,
+    delta: 0.012,
+  },
+  {
+    id: "little-tokyo-la",
+    name: "Little Tokyo in Los Angeles",
+    neighborhood: "Downtown Los Angeles",
+    city: "Los Angeles",
+    description:
+      "One of only three official Japantowns in the U.S. — ramen, sushi, and the Japanese American National Museum in downtown LA.",
+    heroEmoji: "🇯🇵",
+    lat: 34.0501,
+    lng: -118.2405,
+    delta: 0.01,
+  },
+  {
+    id: "little-ethiopia-la",
+    name: "Little Ethiopia in Los Angeles",
+    neighborhood: "Fairfax Avenue, Los Angeles",
+    city: "Los Angeles",
+    description:
+      "Ethiopian restaurants, coffee, and shops clustered on Fairfax near Olympic — injera, tibs, and first-Thursday nights.",
+    heroEmoji: "🇪🇹",
+    lat: 34.0545,
+    lng: -118.366,
+    delta: 0.01,
+  },
+  {
+    id: "little-arabia-anaheim",
+    name: "Little Arabia in Anaheim",
+    neighborhood: "Brookhurst Street, Anaheim",
+    city: "Orange County",
+    description:
+      "Orange County's Arab corridor — shawarma, bakeries, and Middle Eastern markets along Brookhurst in Anaheim.",
+    heroEmoji: "🇸🇾",
+    lat: 33.8345,
+    lng: -117.9555,
+    delta: 0.02,
+  },
+  {
+    id: "little-saigon-westminster",
+    name: "Little Saigon in Westminster",
+    neighborhood: "Bolsa Avenue, Westminster",
+    city: "Orange County",
+    description:
+      "The largest Little Saigon in the U.S. — phở, bánh mì, and Vietnamese plazas around Bolsa Avenue in Westminster and Garden Grove.",
+    heroEmoji: "🇻🇳",
+    lat: 33.745,
+    lng: -117.954,
+    delta: 0.025,
+  },
 ];
 
 async function main() {
