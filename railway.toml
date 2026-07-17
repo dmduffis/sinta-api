@@ -1,0 +1,11 @@
+[build]
+builder = "NIXPACKS"
+# Include devDependencies so @types/* are available for `tsc`
+buildCommand = "npm ci --include=dev && npm run build"
+
+[deploy]
+startCommand = "npm run start"
+healthcheckPath = "/health"
+# First boot runs prisma migrate deploy
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"

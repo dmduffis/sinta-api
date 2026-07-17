@@ -1,0 +1,125 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [postgis]
+}
+
+enum RouteType {
+  curated
+  ai_generated
+  seasonal
+}
+
+model User {
+  id          String         @id @default(cuid())
+  email       String         @unique
+  displayName String
+  createdAt   DateTime       @default(now())
+  stamps      Stamp[]
+  journal     JournalEntry[]
+}
+
+model Community {
+  id           String                                  @id @default(cuid())
+  name         String
+  neighborhood String
+  city         String
+  description  String
+  /// PostGIS polygon (WGS84). Queried via raw SQL / ST_* helpers.
+  boundary     Unsupported("geometry(Polygon, 4326)")?
+  heroEmoji    String?
+  imageUrl     String?
+  pois         Poi[]
+  stamps       Stamp[]
+  journal      JournalEntry[]
+
+  @@index([name])
+}
+
+model Poi {
+  id          String                                @id @default(cuid())
+  communityId String
+  community   Community                             @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  name        String
+  category    String
+  /// PostGIS point (WGS84). Queried via raw SQL / ST_* helpers.
+  location    Unsupported("geometry(Point, 4326)")?
+  address     String?
+  hours       String?
+  dishes      Dish[]
+  journal     JournalEntry[]
+  routeStops  RouteStop[]
+
+  @@index([communityId])
+  @@index([name])
+}
+
+model Dish {
+  id          String  @id @default(cuid())
+  poiId       String
+  poi         Poi     @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  priceRange  String?
+
+  @@index([poiId])
+  @@index([name])
+}
+
+model Stamp {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  earnedAt    DateTime  @default(now())
+
+  @@unique([userId, communityId])
+  @@index([userId])
+  @@index([communityId])
+}
+
+model JournalEntry {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityId String?
+  community   Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  poiId       String?
+  poi         Poi?       @relation(fields: [poiId], references: [id], onDelete: SetNull)
+  note        String
+  photoUrl    String?
+  createdAt   DateTime   @default(now())
+
+  @@index([userId])
+  @@index([communityId])
+  @@index([poiId])
+}
+
+model Route {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        RouteType
+  createdAt   DateTime    @default(now())
+  stops       RouteStop[]
+
+  @@index([type])
+}
+
+model RouteStop {
+  id      String @id @default(cuid())
+  routeId String
+  route   Route  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  poiId   String
+  poi     Poi    @relation(fields: [poiId], references: [id], onDelete: Cascade)
+  order   Int
+
+  @@unique([routeId, order])
+  @@index([routeId])
+  @@index([poiId])
+}
