@@ -37,6 +37,7 @@ export interface PoiSummary {
   priceLevel?: string | null;
   imageUrl?: string | null;
   yelpUrl?: string | null;
+  ethnicities?: string[];
 }
 
 export interface DishDto {

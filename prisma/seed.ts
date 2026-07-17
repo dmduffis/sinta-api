@@ -24,7 +24,6 @@ function squarePolygonWkt(lat: number, lng: number, delta = 0.008): string {
   const maxLng = lng + delta;
   const minLat = lat - delta;
   const maxLat = lat + delta;
-  // WKT: exterior ring, lon lat order, closed
   return `POLYGON((${minLng} ${minLat}, ${maxLng} ${minLat}, ${maxLng} ${maxLat}, ${minLng} ${maxLat}, ${minLng} ${minLat}))`;
 }
 
@@ -36,8 +35,9 @@ async function setCommunityBoundary(
   id: string,
   lat: number,
   lng: number,
+  delta = 0.008,
 ): Promise<void> {
-  const wkt = squarePolygonWkt(lat, lng);
+  const wkt = squarePolygonWkt(lat, lng, delta);
   await prisma.$executeRawUnsafe(
     `UPDATE "Community" SET boundary = ST_SetSRID(ST_GeomFromText($1), 4326) WHERE id = $2`,
     wkt,
@@ -59,16 +59,335 @@ async function setPoiLocation(
 }
 
 /**
- * Seed data aligned to sinta-mobile mock communities:
- * - Little Bhod-Tibet (Jackson Heights) — "Little Tibet" in product copy
- * - Little Odessa (Brighton Beach)
- * - Koreatown in Manhattan
- * - Little Senegal (Harlem)
+ * NYC Immigrant Enclaves — aligned to sinta-mobile mockCommunities
+ * (Mayor's Office map, 30 neighborhoods).
  */
+const COMMUNITIES: {
+  id: string;
+  name: string;
+  neighborhood: string;
+  description: string;
+  heroEmoji: string;
+  lat: number;
+  lng: number;
+  /** Slightly larger polygons for denser corridors */
+  delta?: number;
+}[] = [
+  {
+    id: "chinatown-flushing",
+    name: "Chinatown in Flushing",
+    neighborhood: "Flushing, Queens",
+    description:
+      "One of the largest Chinatowns outside Asia. Main Street and Roosevelt hum with regional Chinese cuisines — Shanghainese, Taiwanese, Sichuan, and more.",
+    heroEmoji: "🥟",
+    lat: 40.759,
+    lng: -73.83,
+    delta: 0.012,
+  },
+  {
+    id: "chinatown-manhattan",
+    name: "Chinatown in Manhattan",
+    neighborhood: "Lower Manhattan",
+    description:
+      "The original New York Chinatown around Canal and Mott — bakers, banquet halls, and Little Fuzhou energy on East Broadway.",
+    heroEmoji: "🏮",
+    lat: 40.7155,
+    lng: -73.997,
+  },
+  {
+    id: "chinatown-sunset-park",
+    name: "Chinatown in Sunset Park",
+    neighborhood: "Brooklyn",
+    description:
+      "Brooklyn's Chinatown along 8th Avenue — dim sum mornings and a walk up to the park for harbor views.",
+    heroEmoji: "🏯",
+    lat: 40.641,
+    lng: -74.009,
+  },
+  {
+    id: "guyana-gateway",
+    name: "Guyana Gateway",
+    neighborhood: "Crown Heights, Brooklyn",
+    description:
+      "A Guyanese gateway near Utica Avenue — roti shops, bakeries, and Caribbean groceries for the Crown Heights community.",
+    heroEmoji: "🇬🇾",
+    lat: 40.669,
+    lng: -73.931,
+  },
+  {
+    id: "koreatown-manhattan",
+    name: "Koreatown in Manhattan",
+    neighborhood: "Manhattan",
+    description:
+      "A vertical village around 32nd Street — karaoke above BBQ, skincare next to soju bars.",
+    heroEmoji: "🍜",
+    lat: 40.7473,
+    lng: -73.9869,
+    delta: 0.005,
+  },
+  {
+    id: "koreatown-queens",
+    name: "Koreatown in Queens",
+    neighborhood: "Murray Hill / Flushing, Queens",
+    description:
+      "Queens Koreatown near Flushing — quieter than 32nd Street, with barbecue halls and bakeries locals swear by.",
+    heroEmoji: "🇰🇷",
+    lat: 40.748,
+    lng: -73.814,
+    delta: 0.018,
+  },
+  {
+    id: "little-africa-si",
+    name: "Little Africa in Staten Island",
+    neighborhood: "Clifton, Staten Island",
+    description:
+      "Clifton's Little Africa — Liberian and West African restaurants, markets, and community life on the North Shore.",
+    heroEmoji: "🌍",
+    lat: 40.621,
+    lng: -74.072,
+  },
+  {
+    id: "little-africa-bronx",
+    name: "Little Africa in the Bronx",
+    neighborhood: "Bronx",
+    description:
+      "A growing West African corridor near 167th Street — stews, grilled meats, and weekend gatherings.",
+    heroEmoji: "🥘",
+    lat: 40.834,
+    lng: -73.921,
+  },
+  {
+    id: "little-albania",
+    name: "Little Albania",
+    neighborhood: "Fordham, Bronx",
+    description:
+      "Fordham's Albanian stretch — cafés, bakeries, and Balkan grilling near the Grand Concourse.",
+    heroEmoji: "🇦🇱",
+    lat: 40.862,
+    lng: -73.898,
+  },
+  {
+    id: "little-bangladesh",
+    name: "Little Bangladesh",
+    neighborhood: "Jamaica, Queens",
+    description:
+      "Jamaica's Little Bangladesh — hilsa, biryani, and sweet shops near Hillside and Jamaica Center.",
+    heroEmoji: "🇧🇩",
+    lat: 40.707,
+    lng: -73.793,
+  },
+  {
+    id: "little-bhod-tibet",
+    name: "Little Bhod-Tibet",
+    neighborhood: "Jackson Heights, Queens",
+    description:
+      "A Himalayan pocket near Northern Boulevard — momos, butter tea energy, and prayer flags in shop windows.",
+    heroEmoji: "🏔️",
+    lat: 40.755,
+    lng: -73.87,
+    delta: 0.014,
+  },
+  {
+    id: "little-caribbean",
+    name: "Little Caribbean",
+    neighborhood: "Flatbush, Brooklyn",
+    description:
+      "Flatbush's Little Caribbean — jerk smoke in the air, roti shops, and Carnival energy year-round.",
+    heroEmoji: "🇯🇲",
+    lat: 40.652,
+    lng: -73.96,
+  },
+  {
+    id: "little-colombia",
+    name: "Little Colombia",
+    neighborhood: "Jackson Heights, Queens",
+    description:
+      "Jackson Heights' Colombian strip — arepas, pan de bono, and late cafés under the 7 train.",
+    heroEmoji: "🇨🇴",
+    lat: 40.747,
+    lng: -73.891,
+    delta: 0.012,
+  },
+  {
+    id: "little-dominican-republic",
+    name: "Little Dominican Republic",
+    neighborhood: "Washington Heights, Manhattan",
+    description:
+      "Washington Heights — the largest Dominican community in the U.S. Chimichurris, merengue, and breakfast plates that ruin diners.",
+    heroEmoji: "🇩🇴",
+    lat: 40.847,
+    lng: -73.938,
+    delta: 0.01,
+  },
+  {
+    id: "little-ecuador",
+    name: "Little Ecuador",
+    neighborhood: "Corona / Jackson Heights, Queens",
+    description:
+      "Corona and Jackson Heights' Ecuadorian corridor — hornado, encebollado, and bakeries near Junction Blvd.",
+    heroEmoji: "🇪🇨",
+    lat: 40.748,
+    lng: -73.869,
+  },
+  {
+    id: "little-egypt",
+    name: "Little Egypt",
+    neighborhood: "Astoria, Queens",
+    description:
+      "Astoria's Little Egypt — shisha cafés, koshari, and Steinway Street evenings that stretch late.",
+    heroEmoji: "🇪🇬",
+    lat: 40.77,
+    lng: -73.912,
+  },
+  {
+    id: "little-guyana-queens",
+    name: "Little Guyana in Queens",
+    neighborhood: "Richmond Hill & Ozone Park, Queens",
+    description:
+      "Liberty Avenue's Little Guyana — roti shops, mandirs, mosques, and Indo-Caribbean bakeries between Lefferts and the Van Wyck.",
+    heroEmoji: "🇬🇾",
+    lat: 40.68,
+    lng: -73.837,
+    delta: 0.012,
+  },
+  {
+    id: "little-guyana-bronx",
+    name: "Little Guyana in the Bronx",
+    neighborhood: "Bronx",
+    description:
+      "A Bronx Guyanese pocket near Nereid Avenue — cook-up rice, pepperpot energy, and weekend family tables.",
+    heroEmoji: "🍲",
+    lat: 40.899,
+    lng: -73.847,
+  },
+  {
+    id: "little-haiti",
+    name: "Little Haiti",
+    neighborhood: "Flatbush, Brooklyn",
+    description:
+      "Flatbush's Little Haiti — griot, diri kole, and Creole on Church and Nostrand.",
+    heroEmoji: "🇭🇹",
+    lat: 40.64,
+    lng: -73.955,
+  },
+  {
+    id: "little-india",
+    name: "Little India",
+    neighborhood: "Jackson Heights, Queens",
+    description:
+      "74th Street's Little India — spice markets, chaat stalls, and the densest Desi shopping strip in the city.",
+    heroEmoji: "🇮🇳",
+    lat: 40.7475,
+    lng: -73.8915,
+  },
+  {
+    id: "little-manila",
+    name: "Little Manila",
+    neighborhood: "Woodside / Jackson Heights, Queens",
+    description:
+      "Little Manila in western Queens — lumpia, halo-halo, and grocery stores stocked like Manila.",
+    heroEmoji: "🇵🇭",
+    lat: 40.746,
+    lng: -73.902,
+  },
+  {
+    id: "little-mexico-port-richmond",
+    name: "Little Mexico in Port Richmond",
+    neighborhood: "Port Richmond, Staten Island",
+    description:
+      "Port Richmond's Little Mexico — tacos, pan dulce, and a North Shore strip that feels like home.",
+    heroEmoji: "🇲🇽",
+    lat: 40.635,
+    lng: -74.125,
+    delta: 0.015,
+  },
+  {
+    id: "little-mexico-sunset-park",
+    name: "Little Mexico in Sunset Park",
+    neighborhood: "Sunset Park, Brooklyn",
+    description:
+      "Sunset Park's Mexican corridor on 5th Avenue — tacos al pastor, tortillerias, and weekend markets.",
+    heroEmoji: "🌮",
+    lat: 40.648,
+    lng: -74.005,
+  },
+  {
+    id: "little-odessa",
+    name: "Little Odessa",
+    neighborhood: "Brighton Beach, Brooklyn",
+    description:
+      "Brighton Beach's Little Odessa — smoked fish, Georgian bakery, and Russian under the elevated tracks.",
+    heroEmoji: "🇷🇺",
+    lat: 40.5776,
+    lng: -73.9614,
+  },
+  {
+    id: "little-palestine",
+    name: "Little Palestine",
+    neighborhood: "Bay Ridge, Brooklyn",
+    description:
+      "Bay Ridge's Little Palestine — knafeh, falafel, and 5th Avenue cafés that stay busy late.",
+    heroEmoji: "🇵🇸",
+    lat: 40.622,
+    lng: -74.028,
+  },
+  {
+    id: "little-pakistan",
+    name: "Little Pakistan",
+    neighborhood: "Midwood & Kensington, Brooklyn",
+    description:
+      "Brooklyn's Little Pakistan on Coney Island Avenue — kebab houses, sweet shops, and Friday-night crowds.",
+    heroEmoji: "🇵🇰",
+    lat: 40.635,
+    lng: -73.963,
+    delta: 0.01,
+  },
+  {
+    id: "little-poland",
+    name: "Little Poland",
+    neighborhood: "Greenpoint, Brooklyn",
+    description:
+      "Greenpoint's Little Poland — pierogi, kielbasa, and bakeries that still open early for the regulars.",
+    heroEmoji: "🇵🇱",
+    lat: 40.73,
+    lng: -73.954,
+  },
+  {
+    id: "little-senegal",
+    name: "Little Senegal",
+    neighborhood: "Harlem, Manhattan",
+    description:
+      "Le Petit Sénégal on West 116th — thieboudienne, fabric shops, and Wolof in the air.",
+    heroEmoji: "🇸🇳",
+    lat: 40.8029,
+    lng: -73.9531,
+  },
+  {
+    id: "little-ukraine",
+    name: "Little Ukraine",
+    neighborhood: "East Village, Manhattan",
+    description:
+      "East Village's Little Ukraine — pierogi counters, churches, and a neighborhood that still feels like home for many families.",
+    heroEmoji: "🇺🇦",
+    lat: 40.728,
+    lng: -73.987,
+  },
+  {
+    id: "little-yemen",
+    name: "Little Yemen",
+    neighborhood: "Bronx",
+    description:
+      "The Bronx's Little Yemen — saltah, fahsa, and cafés near Bronx Park East that stay open late.",
+    heroEmoji: "🇾🇪",
+    lat: 40.857,
+    lng: -73.868,
+    delta: 0.015,
+  },
+];
+
 async function main() {
   console.log("Seeding Sinta database…");
 
-  // Wipe in FK-safe order for idempotent re-seeds
   await prisma.routeStop.deleteMany();
   await prisma.route.deleteMany();
   await prisma.journalEntry.deleteMany();
@@ -86,68 +405,30 @@ async function main() {
     },
   });
 
-  // —— Communities ——
-  const littleTibet = await prisma.community.create({
-    data: {
-      id: "little-bhod-tibet",
-      name: "Little Bhod-Tibet",
-      neighborhood: "Jackson Heights, Queens",
-      city: "New York",
-      description:
-        "A Himalayan pocket near Northern Boulevard — momos, butter tea energy, and prayer flags in shop windows.",
-      heroEmoji: "🏔️",
-    },
-  });
-  await setCommunityBoundary(littleTibet.id, 40.755, -73.87);
+  for (const c of COMMUNITIES) {
+    await prisma.community.create({
+      data: {
+        id: c.id,
+        name: c.name,
+        neighborhood: c.neighborhood,
+        city: "New York",
+        description: c.description,
+        heroEmoji: c.heroEmoji,
+      },
+    });
+    await setCommunityBoundary(c.id, c.lat, c.lng, c.delta ?? 0.008);
+  }
 
-  const littleOdessa = await prisma.community.create({
-    data: {
-      id: "little-odessa",
-      name: "Little Odessa",
-      neighborhood: "Brighton Beach, Brooklyn",
-      city: "New York",
-      description:
-        "Brighton Beach's Little Odessa — smoked fish, Georgian bakery, and Russian under the elevated tracks.",
-      heroEmoji: "🇷🇺",
-    },
-  });
-  await setCommunityBoundary(littleOdessa.id, 40.5776, -73.9614);
-
-  const koreatown = await prisma.community.create({
-    data: {
-      id: "koreatown-manhattan",
-      name: "Koreatown in Manhattan",
-      neighborhood: "Manhattan",
-      city: "New York",
-      description:
-        "A vertical village around 32nd Street — karaoke above BBQ, skincare next to soju bars.",
-      heroEmoji: "🍜",
-    },
-  });
-  await setCommunityBoundary(koreatown.id, 40.7473, -73.9869);
-
-  const littleSenegal = await prisma.community.create({
-    data: {
-      id: "little-senegal",
-      name: "Little Senegal",
-      neighborhood: "Harlem, Manhattan",
-      city: "New York",
-      description:
-        "Le Petit Sénégal on West 116th — thieboudienne, fabric shops, and Wolof in the air.",
-      heroEmoji: "🇸🇳",
-    },
-  });
-  await setCommunityBoundary(littleSenegal.id, 40.8029, -73.9531);
-
-  // —— POIs + dishes ——
+  // —— Curated starter POIs / dishes (Yelp sync fills the rest) ——
   const himalayanYak = await prisma.poi.create({
     data: {
       id: "r-momo-hut",
-      communityId: littleTibet.id,
+      communityId: "little-bhod-tibet",
       name: "Himalayan Yak",
       category: "restaurant",
       address: "Northern Blvd, Queens",
       hours: "11:00–22:00",
+      ethnicities: ["nepali"],
       dishes: {
         create: [
           {
@@ -171,11 +452,12 @@ async function main() {
   const butterTeaHouse = await prisma.poi.create({
     data: {
       id: "r-butter-tea",
-      communityId: littleTibet.id,
+      communityId: "little-bhod-tibet",
       name: "Prayer Flag Café",
       category: "cafe",
       address: "37th Ave near Northern Blvd",
       hours: "09:00–20:00",
+      ethnicities: ["nepali"],
       dishes: {
         create: [
           {
@@ -193,11 +475,12 @@ async function main() {
   const tatiana = await prisma.poi.create({
     data: {
       id: "r-tatiana",
-      communityId: littleOdessa.id,
+      communityId: "little-odessa",
       name: "Tatiana Restaurant",
       category: "restaurant",
       address: "3152 Brighton 6th St",
       hours: "12:00–23:00",
+      ethnicities: ["russian", "ukrainian"],
       dishes: {
         create: [
           {
@@ -215,11 +498,12 @@ async function main() {
   const odessaMarket = await prisma.poi.create({
     data: {
       id: "r-odessa-market",
-      communityId: littleOdessa.id,
+      communityId: "little-odessa",
       name: "Brighton Beach Market",
       category: "market",
       address: "Brighton Beach Ave",
       hours: "08:00–20:00",
+      ethnicities: ["russian"],
       dishes: {
         create: [
           {
@@ -237,11 +521,12 @@ async function main() {
   const jongro = await prisma.poi.create({
     data: {
       id: "r-jongro",
-      communityId: koreatown.id,
+      communityId: "koreatown-manhattan",
       name: "Jongro BBQ",
       category: "restaurant",
       address: "22 W 32nd St",
       hours: "11:30–02:00",
+      ethnicities: ["korean"],
       dishes: {
         create: [
           {
@@ -259,11 +544,12 @@ async function main() {
   const herNameIsHan = await prisma.poi.create({
     data: {
       id: "r-her-name",
-      communityId: koreatown.id,
+      communityId: "koreatown-manhattan",
       name: "Her Name Is Han",
       category: "restaurant",
       address: "17 E 31st St",
       hours: "17:00–23:00",
+      ethnicities: ["korean"],
       dishes: {
         create: [
           {
@@ -281,11 +567,12 @@ async function main() {
   const africaKine = await prisma.poi.create({
     data: {
       id: "r-africa-kine",
-      communityId: littleSenegal.id,
+      communityId: "little-senegal",
       name: "Africa Kine",
       category: "restaurant",
       address: "256 W 116th St",
       hours: "12:00–22:00",
+      ethnicities: ["senegalese"],
       dishes: {
         create: [
           {
@@ -309,11 +596,12 @@ async function main() {
   const senegalMarket = await prisma.poi.create({
     data: {
       id: "r-senegal-market",
-      communityId: littleSenegal.id,
+      communityId: "little-senegal",
       name: "Le Petit Marché",
       category: "market",
       address: "W 116th St",
       hours: "10:00–19:00",
+      ethnicities: ["senegalese"],
       dishes: {
         create: [
           {
@@ -328,25 +616,23 @@ async function main() {
   });
   await setPoiLocation(senegalMarket.id, 40.8025, -73.9525);
 
-  // —— Sample stamp + journal ——
   await prisma.stamp.create({
     data: {
       userId: user.id,
-      communityId: koreatown.id,
+      communityId: "koreatown-manhattan",
     },
   });
 
   await prisma.journalEntry.create({
     data: {
       userId: user.id,
-      communityId: koreatown.id,
+      communityId: "koreatown-manhattan",
       poiId: jongro.id,
       note: "Late-night BBQ after work — banchan never ends.",
       photoUrl: null,
     },
   });
 
-  // —— Routes ——
   const neonNoodles = await prisma.route.create({
     data: {
       id: "route-neon-noodles",
@@ -377,7 +663,6 @@ async function main() {
     },
   });
 
-  // Placeholder AI-generated route — listing falls back to newest / nearby until real AI lands
   await prisma.route.create({
     data: {
       id: "route-ai-harlem-boardwalk",
@@ -397,8 +682,9 @@ async function main() {
   console.log("Seed complete.");
   console.log({
     user: user.id,
-    communities: 4,
-    routes: [neonNoodles.id, queensHimalaya.id],
+    communities: COMMUNITIES.length,
+    curatedPois: 8,
+    routes: [neonNoodles.id, queensHimalaya.id, "route-ai-harlem-boardwalk"],
   });
 }
 

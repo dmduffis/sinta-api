@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { ethnicitiesFromYelp } from "./ethnicities";
 import {
   formatYelpAddress,
   formatYelpCategory,
@@ -98,11 +99,17 @@ async function upsertYelpBusiness(
     priceLevel: business.price ?? null,
     imageUrl: business.image_url || null,
     yelpUrl: business.url || null,
+    ethnicities: ethnicitiesFromYelp(business),
   };
 
   const existing = await prisma.poi.findUnique({
     where: { yelpId: business.id },
   });
+
+  // Same Yelp place can sit near multiple enclaves — keep the first assignment.
+  if (existing && existing.communityId !== communityId) {
+    return "skipped";
+  }
 
   const poi = existing
     ? await prisma.poi.update({
@@ -164,7 +171,10 @@ export async function syncYelpForAllCommunities(
 
   const results: YelpSyncResult[] = [];
   for (const community of communities) {
-    results.push(await syncYelpForCommunity(community.id, opts));
+    const result = await syncYelpForCommunity(community.id, opts);
+    results.push(result);
+    // Brief pause to stay under Yelp Fusion rate limits
+    await new Promise((r) => setTimeout(r, 350));
   }
   return results;
 }

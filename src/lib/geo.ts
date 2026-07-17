@@ -29,6 +29,7 @@ type PoiRow = {
   priceLevel: string | null;
   imageUrl: string | null;
   yelpUrl: string | null;
+  ethnicities: string[] | null;
 };
 
 const COMMUNITY_SELECT = `
@@ -132,7 +133,8 @@ export async function listPoisForCommunity(
       p.rating,
       p."priceLevel",
       p."imageUrl",
-      p."yelpUrl"
+      p."yelpUrl",
+      p.ethnicities
     FROM "Poi" p
     WHERE p."communityId" = $1
     ORDER BY p.name ASC
@@ -156,7 +158,8 @@ export async function getPoiWithGeometry(id: string): Promise<PoiRow | null> {
       p.rating,
       p."priceLevel",
       p."imageUrl",
-      p."yelpUrl"
+      p."yelpUrl",
+      p.ethnicities
     FROM "Poi" p
     WHERE p.id = $1
     LIMIT 1
@@ -209,5 +212,8 @@ export function mapPoi(row: PoiRow) {
     priceLevel: row.priceLevel,
     imageUrl: row.imageUrl,
     yelpUrl: row.yelpUrl,
+    ethnicities: Array.isArray(row.ethnicities)
+      ? row.ethnicities.slice(0, 2)
+      : [],
   };
 }

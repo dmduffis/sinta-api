@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Poi" ADD COLUMN IF NOT EXISTS "ethnicityFlags" TEXT[] DEFAULT ARRAY[]::TEXT[];

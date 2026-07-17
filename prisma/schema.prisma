@@ -56,6 +56,9 @@ model Poi {
   priceLevel  String?
   imageUrl    String?
   yelpUrl     String?
+  /// 1–2 ethnicity ids for the restaurant itself (not the enclave).
+  /// e.g. ["korean"], ["russian","ukrainian"]. Flags are mapped on clients.
+  ethnicities String[]                              @default([])
   dishes      Dish[]
   journal     JournalEntry[]
   routeStops  RouteStop[]

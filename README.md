@@ -161,14 +161,9 @@ curl -H "x-user-id: seed-user-1" http://localhost:3000/users/seed-user-1/stamps
 
 ## Seed data
 
-`prisma/seed.ts` loads NYC enclaves aligned with the mobile mock data:
+`prisma/seed.ts` loads **30 NYC enclaves** aligned with the mobile mock data (Mayor's Office immigrant enclaves map), plus a few curated POIs/dishes/routes. Demo user: `seed-user-1` / `explorer@sinta.app`.
 
-- **Little Bhod-Tibet** (Jackson Heights)
-- **Little Odessa** (Brighton Beach)
-- **Koreatown in Manhattan**
-- **Little Senegal** (Harlem)
-
-Each community includes POIs, dishes, sample stamps/journal entries, and a few routes. Demo user: `seed-user-1` / `explorer@sinta.app`.
+After seeding, run `npm run yelp:sync` (or `POST /admin/sync/yelp`) to fill restaurants from Yelp.
 
 ## Project structure
 
