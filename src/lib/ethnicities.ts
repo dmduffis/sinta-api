@@ -27,9 +27,13 @@ const CATEGORY_ETHNICITY_RULES: { match: RegExp; id: string }[] = [
   { match: /\bnepalese\b|nepali\b|himalayan|tibetan|momo\b/i, id: "nepali" },
   { match: /\bafghani\b|afghan\b/i, id: "afghan" },
   { match: /\bmexican\b|tacos|taqueria|tex-mex/i, id: "mexican" },
-  { match: /\bcolombian\b|arepas?\b/i, id: "colombian" },
+  { match: /\bcolombian\b|arepas?\b|bandeja|empanadas?\b/i, id: "colombian" },
   { match: /\bdominican\b/i, id: "dominican" },
-  { match: /\becuadorian\b|hornado|encebollado/i, id: "ecuadorian" },
+  {
+    match:
+      /\becuadorian\b|ecuador\b|ecuatorian|guayaquil|azogue|hornado|encebollado|brasas?\b|pollo a la brasa|perla del pacifico|hueca|picanteria|manabita|cuenca/i,
+    id: "ecuadorian",
+  },
   { match: /\bperuvian\b|ceviche/i, id: "peruvian" },
   { match: /\bvenezuelan\b/i, id: "venezuelan" },
   { match: /\bcuban\b/i, id: "cuban" },

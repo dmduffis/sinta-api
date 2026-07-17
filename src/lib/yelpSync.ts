@@ -15,6 +15,64 @@ export type YelpSyncResult = {
   skipped: number;
 };
 
+/** Preferred Yelp search terms for enclaves where generic "restaurants" is too noisy. */
+const COMMUNITY_SEARCH_TERMS: Record<string, string> = {
+  "little-colombia": "colombian",
+  "little-ecuador": "ecuadorian",
+  "little-mexico-sunset-park": "mexican",
+  "little-mexico-port-richmond": "mexican",
+  "little-india": "indian",
+  "little-pakistan": "pakistani",
+  "little-bangladesh": "bangladeshi",
+  "koreatown-manhattan": "korean",
+  "koreatown-queens": "korean",
+  "chinatown-flushing": "chinese",
+  "chinatown-manhattan": "chinese",
+  "chinatown-sunset-park": "chinese",
+  "little-senegal": "senegalese",
+  "little-dominican-republic": "dominican",
+  "little-haiti": "haitian",
+  "little-poland": "polish",
+  "little-ukraine": "ukrainian",
+  "little-odessa": "russian",
+  "little-manila": "filipino",
+  "little-egypt": "egyptian",
+  "little-yemen": "yemeni",
+  "little-palestine": "palestinian",
+  "little-guyana-queens": "guyanese",
+  "little-caribbean": "caribbean",
+  "little-bhod-tibet": "tibetan",
+};
+
+/** Ethnicity ids that "belong" to an enclave — used to reclaim misplaced Yelp POIs. */
+const COMMUNITY_ETHNICITIES: Record<string, string[]> = {
+  "little-colombia": ["colombian"],
+  "little-ecuador": ["ecuadorian"],
+  "little-mexico-sunset-park": ["mexican"],
+  "little-mexico-port-richmond": ["mexican"],
+  "little-india": ["indian"],
+  "little-pakistan": ["pakistani"],
+  "little-bangladesh": ["bangladeshi"],
+  "koreatown-manhattan": ["korean"],
+  "koreatown-queens": ["korean"],
+  "chinatown-flushing": ["chinese", "taiwanese"],
+  "chinatown-manhattan": ["chinese"],
+  "chinatown-sunset-park": ["chinese"],
+  "little-senegal": ["senegalese"],
+  "little-dominican-republic": ["dominican"],
+  "little-haiti": ["haitian"],
+  "little-poland": ["polish"],
+  "little-ukraine": ["ukrainian"],
+  "little-odessa": ["russian", "ukrainian"],
+  "little-manila": ["filipino"],
+  "little-egypt": ["egyptian"],
+  "little-yemen": ["yemeni"],
+  "little-palestine": ["palestinian"],
+  "little-guyana-queens": ["guyanese"],
+  "little-caribbean": ["jamaican", "caribbean", "haitian"],
+  "little-bhod-tibet": ["nepali"],
+};
+
 async function getCommunityCentroid(
   communityId: string,
 ): Promise<{ lat: number; lng: number; name: string } | null> {
@@ -77,6 +135,15 @@ async function isInsideCommunity(
   return Boolean(rows[0]?.inside);
 }
 
+function ethnicityMatchesCommunity(
+  communityId: string,
+  ethnicities: string[],
+): boolean {
+  const preferred = COMMUNITY_ETHNICITIES[communityId];
+  if (!preferred?.length) return false;
+  return ethnicities.some((e) => preferred.includes(e));
+}
+
 async function upsertYelpBusiness(
   communityId: string,
   business: YelpBusiness,
@@ -88,6 +155,7 @@ async function upsertYelpBusiness(
   const inside = await isInsideCommunity(communityId, lat, lng);
   if (!inside) return "skipped";
 
+  const ethnicities = ethnicitiesFromYelp(business);
   const data = {
     communityId,
     name: business.name,
@@ -99,16 +167,18 @@ async function upsertYelpBusiness(
     priceLevel: business.price ?? null,
     imageUrl: business.image_url || null,
     yelpUrl: business.url || null,
-    ethnicities: ethnicitiesFromYelp(business),
+    ethnicities,
   };
 
   const existing = await prisma.poi.findUnique({
     where: { yelpId: business.id },
   });
 
-  // Same Yelp place can sit near multiple enclaves — keep the first assignment.
+  // Same Yelp place near multiple enclaves: keep first assignment, unless this
+  // enclave is a better ethnicity match (e.g. Arepa Lady → Little Colombia).
   if (existing && existing.communityId !== communityId) {
-    return "skipped";
+    const reclaim = ethnicityMatchesCommunity(communityId, ethnicities);
+    if (!reclaim) return "skipped";
   }
 
   const poi = existing
@@ -135,12 +205,15 @@ export async function syncYelpForCommunity(
     throw new Error(`Community not found or missing boundary: ${communityId}`);
   }
 
+  const term =
+    opts?.term ?? COMMUNITY_SEARCH_TERMS[communityId] ?? "restaurants";
+
   const businesses = await searchYelpBusinesses({
     latitude: centroid.lat,
     longitude: centroid.lng,
-    radiusMeters: opts?.radiusMeters ?? 1200,
-    limit: opts?.limit ?? 30,
-    term: opts?.term ?? "restaurants",
+    radiusMeters: opts?.radiusMeters ?? 1500,
+    limit: opts?.limit ?? 40,
+    term,
   });
 
   let upserted = 0;
@@ -173,7 +246,6 @@ export async function syncYelpForAllCommunities(
   for (const community of communities) {
     const result = await syncYelpForCommunity(community.id, opts);
     results.push(result);
-    // Brief pause to stay under Yelp Fusion rate limits
     await new Promise((r) => setTimeout(r, 350));
   }
   return results;

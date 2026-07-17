@@ -206,7 +206,7 @@ const COMMUNITIES: {
     heroEmoji: "🇨🇴",
     lat: 40.747,
     lng: -73.891,
-    delta: 0.012,
+    delta: 0.018,
   },
   {
     id: "little-dominican-republic",
@@ -228,6 +228,7 @@ const COMMUNITIES: {
     heroEmoji: "🇪🇨",
     lat: 40.748,
     lng: -73.869,
+    delta: 0.016,
   },
   {
     id: "little-egypt",
