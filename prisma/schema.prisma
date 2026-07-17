@@ -14,6 +14,12 @@ enum RouteType {
   seasonal
 }
 
+enum FavoriteType {
+  community
+  restaurant
+  dish
+}
+
 model User {
   id          String         @id @default(cuid())
   email       String         @unique
@@ -21,6 +27,7 @@ model User {
   createdAt   DateTime       @default(now())
   stamps      Stamp[]
   journal     JournalEntry[]
+  favorites   Favorite[]
 }
 
 model Community {
@@ -90,6 +97,20 @@ model Stamp {
   @@unique([userId, communityId])
   @@index([userId])
   @@index([communityId])
+}
+
+model Favorite {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      FavoriteType
+  /// communityId | poiId | dishId depending on type
+  targetId  String
+  createdAt DateTime     @default(now())
+
+  @@unique([userId, type, targetId])
+  @@index([userId])
+  @@index([type, targetId])
 }
 
 model JournalEntry {

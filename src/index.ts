@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { adminRouter } from "./routes/admin";
 import { communitiesRouter } from "./routes/communities";
+import { favoritesRouter } from "./routes/favorites";
 import { journalRouter } from "./routes/journal";
 import { poisRouter } from "./routes/pois";
 import { routesRouter } from "./routes/routes";
@@ -24,6 +25,7 @@ app.get("/health", (_req, res) => {
 app.use("/communities", communitiesRouter);
 app.use("/pois", poisRouter);
 app.use("/stamps", stampsRouter);
+app.use("/favorites", favoritesRouter);
 app.use("/journal", journalRouter);
 app.use("/users", usersRouter);
 app.use("/routes", routesRouter);
