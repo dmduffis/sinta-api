@@ -109,11 +109,13 @@ Server defaults to `http://localhost:3000`. Health check: `GET /health`.
 
 ## Environment variables
 
-| Variable              | Required | Description                                             |
-| --------------------- | -------- | ------------------------------------------------------- |
-| `DATABASE_URL`        | Yes      | Postgres connection string (PostGIS-enabled DB)         |
-| `PORT`                | No       | HTTP port (default `3000`)                              |
-| `DEV_DEFAULT_USER_ID` | No       | Fallback user id when `x-user-id` is omitted (dev only) |
+| Variable              | Required | Description                                                  |
+| --------------------- | -------- | ------------------------------------------------------------ |
+| `DATABASE_URL`        | Yes      | Postgres connection string (PostGIS-enabled DB)              |
+| `PORT`                | No       | HTTP port (default `3000`)                                   |
+| `DEV_DEFAULT_USER_ID` | No       | Fallback user id when `x-user-id` is omitted (dev only)      |
+| `YELP_API_KEY`        | No\*     | Yelp Fusion key for POI sync (\*required to run sync)        |
+| `SYNC_SECRET`         | No\*     | Shared secret for `POST /admin/sync/yelp*` (`x-sync-secret`) |
 
 ## API overview
 
@@ -130,6 +132,26 @@ Server defaults to `http://localhost:3000`. Health check: `GET /health`.
 | `GET`  | `/routes`                 | Optional `?type=curated\|ai_generated\|seasonal`                         |
 | `GET`  | `/routes/:id`             | Route with ordered stops                                                 |
 | `GET`  | `/search?q=`              | Search communities, POIs, dishes by name                                 |
+| `POST` | `/admin/sync/yelp`        | Sync all communities from Yelp — requires `x-sync-secret`                |
+| `POST` | `/admin/sync/yelp/:id`    | Sync one community — requires `x-sync-secret`                            |
+
+## Yelp POI sync
+
+Pulls restaurants/food near each community centroid and upserts POIs that fall **inside** the community polygon (by `yelpId`).
+
+```bash
+# One community
+npm run yelp:sync -- koreatown-manhattan
+
+# All communities
+npm run yelp:sync
+
+# Or via HTTP (set SYNC_SECRET in .env / Railway)
+curl -X POST -H "x-sync-secret: $SYNC_SECRET" \
+  "http://localhost:3000/admin/sync/yelp/koreatown-manhattan"
+```
+
+On Railway, also set `YELP_API_KEY` and `SYNC_SECRET`.
 
 Stub auth example:
 

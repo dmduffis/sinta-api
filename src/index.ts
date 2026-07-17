@@ -1,6 +1,7 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
+import { adminRouter } from "./routes/admin";
 import { communitiesRouter } from "./routes/communities";
 import { journalRouter } from "./routes/journal";
 import { poisRouter } from "./routes/pois";
@@ -27,6 +28,7 @@ app.use("/journal", journalRouter);
 app.use("/users", usersRouter);
 app.use("/routes", routesRouter);
 app.use("/search", searchRouter);
+app.use("/admin", adminRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

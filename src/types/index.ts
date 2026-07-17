@@ -32,6 +32,11 @@ export interface PoiSummary {
   address: string | null;
   hours: string | null;
   location?: GeoJsonPoint | null;
+  yelpId?: string | null;
+  rating?: number | null;
+  priceLevel?: string | null;
+  imageUrl?: string | null;
+  yelpUrl?: string | null;
 }
 
 export interface DishDto {

@@ -50,6 +50,12 @@ model Poi {
   location    Unsupported("geometry(Point, 4326)")?
   address     String?
   hours       String?
+  /// Yelp Fusion business id — used for upserts when syncing.
+  yelpId      String?                               @unique
+  rating      Float?
+  priceLevel  String?
+  imageUrl    String?
+  yelpUrl     String?
   dishes      Dish[]
   journal     JournalEntry[]
   routeStops  RouteStop[]

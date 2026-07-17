@@ -24,6 +24,11 @@ type PoiRow = {
   address: string | null;
   hours: string | null;
   location_geojson: string | null;
+  yelpId: string | null;
+  rating: number | string | null;
+  priceLevel: string | null;
+  imageUrl: string | null;
+  yelpUrl: string | null;
 };
 
 const COMMUNITY_SELECT = `
@@ -122,7 +127,12 @@ export async function listPoisForCommunity(
       p.category,
       p.address,
       p.hours,
-      ST_AsGeoJSON(p.location)::text AS location_geojson
+      ST_AsGeoJSON(p.location)::text AS location_geojson,
+      p."yelpId",
+      p.rating,
+      p."priceLevel",
+      p."imageUrl",
+      p."yelpUrl"
     FROM "Poi" p
     WHERE p."communityId" = $1
     ORDER BY p.name ASC
@@ -141,7 +151,12 @@ export async function getPoiWithGeometry(id: string): Promise<PoiRow | null> {
       p.category,
       p.address,
       p.hours,
-      ST_AsGeoJSON(p.location)::text AS location_geojson
+      ST_AsGeoJSON(p.location)::text AS location_geojson,
+      p."yelpId",
+      p.rating,
+      p."priceLevel",
+      p."imageUrl",
+      p."yelpUrl"
     FROM "Poi" p
     WHERE p.id = $1
     LIMIT 1
@@ -189,5 +204,10 @@ export function mapPoi(row: PoiRow) {
     address: row.address,
     hours: row.hours,
     location: parseGeoJson<GeoJsonPoint>(row.location_geojson),
+    yelpId: row.yelpId,
+    rating: toNumber(row.rating),
+    priceLevel: row.priceLevel,
+    imageUrl: row.imageUrl,
+    yelpUrl: row.yelpUrl,
   };
 }
