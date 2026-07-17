@@ -78,7 +78,16 @@ const CATEGORY_ETHNICITY_RULES: { match: RegExp; id: string }[] = [
   { match: /\bgerman\b/i, id: "german" },
   { match: /\bfrench\b/i, id: "french" },
   { match: /\bspanish\b/i, id: "spanish" },
-  { match: /\bportuguese\b|brazilian\b/i, id: "brazilian" },
+  {
+    match:
+      /\bportuguese\b|bacalhau|pastelaria|pastel de nata|portugalia|madeira\b/i,
+    id: "portuguese",
+  },
+  { match: /\bbrazilian\b|churrascaria|feijoada/i, id: "brazilian" },
+  {
+    match: /\bsalvadoran\b|el salvador|pupusas?\b|pupuseria/i,
+    id: "salvadoran",
+  },
   { match: /\bbritish\b|irish\b/i, id: "british" },
 ];
 

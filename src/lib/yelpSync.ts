@@ -47,6 +47,10 @@ const COMMUNITY_SEARCH_TERMS: Record<string, string | string[]> = {
   "little-caribbean": ["caribbean", "jamaican", "jerk"],
   "little-bhod-tibet": ["tibetan", "nepali", "himalayan", "momo"],
   "little-albania": "albanian",
+  "little-india-hicksville": ["indian", "south indian", "pakistani"],
+  "little-portugal-mineola": ["portuguese", "bacalhau"],
+  "little-el-salvador-brentwood": ["salvadoran", "pupusas", "central american"],
+  "koreatown-nassau": ["korean", "korean bbq"],
 };
 
 /** Ethnicity ids that "belong" to an enclave — used to reclaim misplaced Yelp POIs. */
@@ -81,6 +85,10 @@ const COMMUNITY_ETHNICITIES: Record<string, string[]> = {
   "little-caribbean": ["jamaican", "caribbean", "haitian", "guyanese"],
   "little-bhod-tibet": ["nepali"],
   "little-albania": ["albanian"],
+  "little-india-hicksville": ["indian", "pakistani", "bangladeshi"],
+  "little-portugal-mineola": ["portuguese"],
+  "little-el-salvador-brentwood": ["salvadoran"],
+  "koreatown-nassau": ["korean"],
 };
 
 async function getCommunityCentroid(

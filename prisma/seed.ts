@@ -72,6 +72,7 @@ const COMMUNITIES: {
   lng: number;
   /** Slightly larger polygons for denser corridors */
   delta?: number;
+  city?: string;
 }[] = [
   {
     id: "chinatown-flushing",
@@ -384,6 +385,55 @@ const COMMUNITIES: {
     lng: -73.868,
     delta: 0.015,
   },
+  // —— Long Island (Nassau / Suffolk) ——
+  {
+    id: "little-india-hicksville",
+    name: "Little India in Hicksville",
+    neighborhood: "Hicksville, Nassau",
+    city: "Long Island",
+    description:
+      "Long Island's Desi hub — South Asian groceries, sweets shops, and restaurants clustered around Broadway and Old Country Road.",
+    heroEmoji: "🇮🇳",
+    lat: 40.7681,
+    lng: -73.5251,
+    delta: 0.02,
+  },
+  {
+    id: "little-portugal-mineola",
+    name: "Little Portugal in Mineola",
+    neighborhood: "Mineola, Nassau",
+    city: "Long Island",
+    description:
+      "The heart of New York's Portuguese community — pastelarias, seafood spots, and Jericho Turnpike weekends that feel like a festa.",
+    heroEmoji: "🇵🇹",
+    lat: 40.7493,
+    lng: -73.6407,
+    delta: 0.016,
+  },
+  {
+    id: "little-el-salvador-brentwood",
+    name: "Little El Salvador",
+    neighborhood: "Brentwood & Central Islip, Suffolk",
+    city: "Long Island",
+    description:
+      "Suffolk's Salvadoran corridor — pupuserías, panaderías, and Central American markets that anchor Brentwood and Central Islip.",
+    heroEmoji: "🇸🇻",
+    lat: 40.785,
+    lng: -73.224,
+    delta: 0.028,
+  },
+  {
+    id: "koreatown-nassau",
+    name: "Koreatown in Nassau",
+    neighborhood: "New Hyde Park / Northern Blvd, Nassau",
+    city: "Long Island",
+    description:
+      "Where the Kimchi Belt crosses into Nassau — Korean BBQ, bakeries, and H Mart runs along Northern Boulevard past the Queens line.",
+    heroEmoji: "🇰🇷",
+    lat: 40.7635,
+    lng: -73.705,
+    delta: 0.028,
+  },
 ];
 
 async function main() {
@@ -412,7 +462,7 @@ async function main() {
         id: c.id,
         name: c.name,
         neighborhood: c.neighborhood,
-        city: "New York",
+        city: c.city ?? "New York",
         description: c.description,
         heroEmoji: c.heroEmoji,
       },

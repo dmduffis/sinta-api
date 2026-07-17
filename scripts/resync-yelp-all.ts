@@ -56,6 +56,15 @@ const ENCLAVES: Enclave[] = [
   { id: "little-senegal", lat: 40.8029, lng: -73.9531, delta: 0.014 },
   { id: "little-ukraine", lat: 40.728, lng: -73.987, delta: 0.01 },
   { id: "little-yemen", lat: 40.857, lng: -73.868, delta: 0.018 },
+  { id: "little-india-hicksville", lat: 40.7681, lng: -73.5251, delta: 0.022 },
+  { id: "little-portugal-mineola", lat: 40.7493, lng: -73.6407, delta: 0.018 },
+  {
+    id: "little-el-salvador-brentwood",
+    lat: 40.785,
+    lng: -73.224,
+    delta: 0.03,
+  },
+  { id: "koreatown-nassau", lat: 40.7635, lng: -73.705, delta: 0.028 },
 ];
 
 function square(lat: number, lng: number, delta: number): string {
