@@ -17,7 +17,8 @@
     "communities:add-li": "tsx scripts/add-long-island-communities.ts",
     "communities:add-detroit": "tsx scripts/add-detroit-communities.ts",
     "communities:add-la": "tsx scripts/add-la-communities.ts",
-    "yelp:metro": "tsx scripts/sync-yelp-metro.ts"
+    "yelp:metro": "tsx scripts/sync-yelp-metro.ts",
+    "dishes:upsert": "tsx scripts/upsert-seed-dishes.ts"
   },
   "engines": {
     "node": ">=20.19.0"

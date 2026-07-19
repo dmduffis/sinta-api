@@ -789,6 +789,180 @@ async function main() {
   });
   await setPoiLocation(senegalMarket.id, 40.8025, -73.9525);
 
+  const nanXiang = await prisma.poi.create({
+    data: {
+      id: "r-nan-xiang",
+      communityId: "chinatown-flushing",
+      name: "Nan Xiang Xiao Long Bao",
+      category: "restaurant",
+      address: "Main St, Flushing",
+      hours: "10:00–21:00",
+      ethnicities: ["chinese"],
+      dishes: {
+        create: [
+          {
+            id: "d-xlb",
+            name: "Soup Dumplings",
+            description: "Delicate steamed buns filled with pork and molten broth.",
+            priceRange: "$$",
+          },
+          {
+            id: "d-shengjian",
+            name: "Shengjian Bao",
+            description: "Pan-fried soup buns with crispy bottoms.",
+            priceRange: "$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(nanXiang.id, 40.759, -73.83);
+
+  const jacksonDosa = await prisma.poi.create({
+    data: {
+      id: "r-jackson-dosa",
+      communityId: "little-india",
+      name: "Jackson Diner",
+      category: "restaurant",
+      address: "37th Ave, Jackson Heights",
+      hours: "11:00–22:00",
+      ethnicities: ["indian"],
+      dishes: {
+        create: [
+          {
+            id: "d-masala-dosa",
+            name: "Masala Dosa",
+            description: "Crispy fermented crepe with spiced potato filling.",
+            priceRange: "$$",
+          },
+          {
+            id: "d-chole-bhature",
+            name: "Chole Bhature",
+            description: "Chickpea curry with puffy fried bread.",
+            priceRange: "$$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(jacksonDosa.id, 40.7498, -73.891);
+
+  const singhRoti = await prisma.poi.create({
+    data: {
+      id: "r-singh-roti",
+      communityId: "little-guyana-queens",
+      name: "Singh's Roti Shop",
+      category: "restaurant",
+      address: "Liberty Ave, Richmond Hill",
+      hours: "10:00–21:00",
+      ethnicities: ["guyanese"],
+      dishes: {
+        create: [
+          {
+            id: "d-doubles",
+            name: "Doubles",
+            description: "Curried chickpeas on soft fried bara.",
+            priceRange: "$",
+          },
+          {
+            id: "d-goat-roti",
+            name: "Goat Roti",
+            description: "Flaky skin with tender curried goat.",
+            priceRange: "$$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(singhRoti.id, 40.6965, -73.831);
+
+  const tacoSunset = await prisma.poi.create({
+    data: {
+      id: "r-taco-sunset",
+      communityId: "little-mexico-sunset-park",
+      name: "Tacos El Bronco",
+      category: "restaurant",
+      address: "5th Ave, Sunset Park",
+      hours: "11:00–23:00",
+      ethnicities: ["mexican"],
+      dishes: {
+        create: [
+          {
+            id: "d-al-pastor",
+            name: "Tacos al Pastor",
+            description: "Trompo-carved pork with pineapple on corn tortillas.",
+            priceRange: "$",
+          },
+          {
+            id: "d-horchata",
+            name: "Horchata",
+            description: "Cinnamon rice drink — cold and sweet.",
+            priceRange: "$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(tacoSunset.id, 40.6455, -74.01);
+
+  const malecon = await prisma.poi.create({
+    data: {
+      id: "r-malecon",
+      communityId: "little-dominican-republic",
+      name: "El Malecon",
+      category: "restaurant",
+      address: "W 175th St, Washington Heights",
+      hours: "07:00–23:00",
+      ethnicities: ["dominican"],
+      dishes: {
+        create: [
+          {
+            id: "d-mangu",
+            name: "Mangú",
+            description: "Mashed plantains with pickled onions and fried cheese.",
+            priceRange: "$$",
+          },
+          {
+            id: "d-pollo-guisado",
+            name: "Pollo Guisado",
+            description: "Slow-simmered Dominican chicken stew with rice.",
+            priceRange: "$$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(malecon.id, 40.8465, -73.938);
+
+  const yemenHouse = await prisma.poi.create({
+    data: {
+      id: "r-yemen-house",
+      communityId: "little-yemen",
+      name: "Yemen Café",
+      category: "restaurant",
+      address: "Atlantic Ave, Brooklyn",
+      hours: "11:00–22:00",
+      ethnicities: ["yemeni"],
+      dishes: {
+        create: [
+          {
+            id: "d-mandi",
+            name: "Mandi",
+            description: "Slow-cooked lamb over fragrant basmati rice.",
+            priceRange: "$$$",
+          },
+          {
+            id: "d-fahsa",
+            name: "Fahsa",
+            description: "Bubbling lamb stew with hilbeh foam.",
+            priceRange: "$$",
+          },
+        ],
+      },
+    },
+  });
+  await setPoiLocation(yemenHouse.id, 40.69, -73.986);
+
   await prisma.stamp.create({
     data: {
       userId: user.id,

@@ -48,6 +48,8 @@ export interface DishDto {
   description: string | null;
   priceRange: string | null;
   poiName?: string;
+  communityId?: string | null;
+  ethnicities?: string[];
 }
 
 export interface CommunityDetail extends CommunitySummary {

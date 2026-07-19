@@ -41,7 +41,15 @@ export async function searchHandler(
             { description: { contains: q, mode: "insensitive" } },
           ],
         },
-        include: { poi: { select: { name: true } } },
+        include: {
+          poi: {
+            select: {
+              name: true,
+              communityId: true,
+              ethnicities: true,
+            },
+          },
+        },
         take: 20,
         orderBy: { name: "asc" },
       }),
@@ -86,6 +94,10 @@ export async function searchHandler(
         description: d.description,
         priceRange: d.priceRange,
         poiName: d.poi.name,
+        communityId: d.poi.communityId,
+        ethnicities: Array.isArray(d.poi.ethnicities)
+          ? d.poi.ethnicities.slice(0, 2)
+          : [],
       })),
     });
   } catch (err) {

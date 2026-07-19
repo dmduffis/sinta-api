@@ -87,6 +87,8 @@ export async function getPoiHandler(
       orderBy: { name: "asc" },
     });
 
+    const ethnicities = row.ethnicities ?? [];
+
     res.json({
       ...mapPoi(row),
       dishes: dishes.map((d) => ({
@@ -95,6 +97,8 @@ export async function getPoiHandler(
         name: d.name,
         description: d.description,
         priceRange: d.priceRange,
+        communityId: row.communityId,
+        ethnicities: Array.isArray(ethnicities) ? ethnicities.slice(0, 2) : [],
       })),
     });
   } catch (err) {

@@ -93,7 +93,15 @@ export async function listCommunityDishesHandler(
 
     const dishes = await prisma.dish.findMany({
       where: { poi: { communityId: id } },
-      include: { poi: { select: { name: true } } },
+      include: {
+        poi: {
+          select: {
+            name: true,
+            communityId: true,
+            ethnicities: true,
+          },
+        },
+      },
       orderBy: { name: "asc" },
     });
 
@@ -105,6 +113,10 @@ export async function listCommunityDishesHandler(
         description: d.description,
         priceRange: d.priceRange,
         poiName: d.poi.name,
+        communityId: d.poi.communityId,
+        ethnicities: Array.isArray(d.poi.ethnicities)
+          ? d.poi.ethnicities.slice(0, 2)
+          : [],
       })),
     );
   } catch (err) {
