@@ -47,6 +47,7 @@ export interface DishDto {
   name: string;
   description: string | null;
   priceRange: string | null;
+  imageUrl?: string | null;
   poiName?: string;
   communityId?: string | null;
   ethnicities?: string[];

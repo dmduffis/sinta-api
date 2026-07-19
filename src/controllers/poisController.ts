@@ -97,6 +97,7 @@ export async function getPoiHandler(
         name: d.name,
         description: d.description,
         priceRange: d.priceRange,
+        imageUrl: d.imageUrl,
         communityId: row.communityId,
         ethnicities: Array.isArray(ethnicities) ? ethnicities.slice(0, 2) : [],
       })),

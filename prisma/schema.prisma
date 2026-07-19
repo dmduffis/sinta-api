@@ -82,6 +82,8 @@ model Dish {
   name        String
   description String?
   priceRange  String?
+  /// Optional dish photo (Unsplash / curated URL).
+  imageUrl    String?
 
   @@index([poiId])
   @@index([name])

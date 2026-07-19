@@ -18,7 +18,8 @@
     "communities:add-detroit": "tsx scripts/add-detroit-communities.ts",
     "communities:add-la": "tsx scripts/add-la-communities.ts",
     "yelp:metro": "tsx scripts/sync-yelp-metro.ts",
-    "dishes:upsert": "tsx scripts/upsert-seed-dishes.ts"
+    "dishes:upsert": "tsx scripts/upsert-seed-dishes.ts",
+    "dishes:images": "tsx scripts/set-dish-images.ts"
   },
   "engines": {
     "node": ">=20.19.0"

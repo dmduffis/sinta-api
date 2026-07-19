@@ -93,6 +93,7 @@ export async function searchHandler(
         name: d.name,
         description: d.description,
         priceRange: d.priceRange,
+        imageUrl: d.imageUrl,
         poiName: d.poi.name,
         communityId: d.poi.communityId,
         ethnicities: Array.isArray(d.poi.ethnicities)
